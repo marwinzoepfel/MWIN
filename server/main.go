@@ -18,44 +18,43 @@ const colorReset = "\033[0m"
 var clients = make(map[net.Conn]string)
 var mutex = &sync.Mutex{} // Mutex for safe concurrent access to clients map
 
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
-
-	// Client-Namen empfangen
+// Function to get client name from the connection
+func getClientName(conn net.Conn) string {
 	reader := bufio.NewReader(conn)
 	clientName, _ := reader.ReadString('\n')
-	clientName = strings.TrimSpace(clientName)
+	return strings.TrimSpace(clientName)
+}
 
+// Function to register a client and send the join message
+func registerClient(conn net.Conn) string {
+	clientName := getClientName(conn)
 	mutex.Lock()
 	clients[conn] = clientName
 	mutex.Unlock()
-
 	broadcastMessage(conn, fmt.Sprintf("%s ist dem Chat beigetreten!\n", clientName))
+	return clientName
+}
 
-	fmt.Printf("Neuer Client verbunden: %s\n", clientName)
-
+// Function to handle incoming messages from a client
+func handleClientMessages(conn net.Conn, clientName string) {
+	reader := bufio.NewReader(conn)
 	for {
 		message, err := reader.ReadString('\n')
 		if err != nil {
 			broadcastMessage(conn, fmt.Sprintf(colorRed+"%s hat den Chat verlassen.\n"+colorReset, clientName))
-
 			fmt.Println("Fehler beim Lesen der Nachricht von", clientName, ":", err)
 			break
 		}
-
-		currentTime := time.Now().Format("15:04:05")
-
-		// Broadcast the message to all clients (with correct sender name)
-		mutex.Lock()
-		for client := range clients {
-			if client != conn {
-				// Nachricht mit Client-Namen senden, aber nur den Zeilenumbruch entfernen
-				fmt.Fprintf(client, "[%s] %s: %s\n", currentTime, clientName, strings.TrimRight(message, "\n"))
-			}
-		}
-		mutex.Unlock()
+		broadcastMessage(conn, fmt.Sprintf("[%s] %s: %s\n", time.Now().Format("15:04:05"), clientName, strings.TrimRight(message, "\n")))
 	}
-	// Remove the client from the map when they disconnect
+}
+
+// Function to handle the connection and cleanup
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+	clientName := registerClient(conn)
+	fmt.Printf("Neuer Client verbunden: %s\n", clientName)
+	handleClientMessages(conn, clientName)
 	mutex.Lock()
 	delete(clients, conn)
 	mutex.Unlock()
@@ -72,23 +71,23 @@ func broadcastMessage(sender net.Conn, message string) {
 	}
 }
 
-func main() {
+// Function to get port (input or default)
+func getPort() string {
 	reader := bufio.NewReader(os.Stdin)
-
 	fmt.Printf("Port eingeben (Standard: %s): [Wichtig! Ohne :] ", defaultPort)
 	portInput, _ := reader.ReadString('\n')
 	portInput = strings.TrimSpace(portInput)
-
-	// Wenn die Eingabe leer ist, verwende den Standardport
 	if portInput == "" {
-		portInput = defaultPort
-	} else {
-		// Füge einen Doppelpunkt hinzu, wenn der Benutzer keinen eingegeben hat
-		if !strings.HasPrefix(portInput, ":") {
-			portInput = ":" + portInput
-		}
+		return defaultPort
 	}
+	if !strings.HasPrefix(portInput, ":") {
+		portInput = ":" + portInput
+	}
+	return portInput
+}
 
+func main() {
+	portInput := getPort()
 	listener, err := net.Listen("tcp", portInput)
 	if err != nil {
 		fmt.Println("Fehler beim Lauschen:", err)
@@ -104,7 +103,6 @@ func main() {
 			fmt.Println("Error accepting connection:", err)
 			continue
 		}
-		// Now call the handleConnection function to handle the new connection
-		go handleConnection(conn)
+		go handleConnection(conn) // Handle each connection in a separate goroutine
 	}
 }
