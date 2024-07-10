@@ -6,6 +6,8 @@ import (
 	"net"
 	"os"
 	"time"
+
+	"github.com/martinlindhe/notify"
 )
 
 const (
@@ -33,6 +35,8 @@ func ReceiveMessages(conn net.Conn) {
 			fmt.Println("Error printing message:", err)
 			return // Exit the goroutine if there's an error
 		}
+		fmt.Println("message: " + message)
+		notify.Notify("Benachrichtigung", message, "", "")
 	}
 }
 
