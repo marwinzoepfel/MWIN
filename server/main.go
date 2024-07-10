@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"server/utils"
 	"strings"
 	"sync"
 	"time"
 )
 
 const defaultPort = ":8080" // Choose your preferred port
-const colorRed = "\033[31m" // Angenehmes Rot
-const colorReset = "\033[0m"
 
 // Map to store connected clients (key: connection, value: client name)
 var clients = make(map[net.Conn]string)
@@ -37,7 +36,7 @@ func handleConnection(conn net.Conn) {
 	for {
 		message, err := reader.ReadString('\n')
 		if err != nil {
-			broadcastMessage(conn, fmt.Sprintf(colorRed+"%s hat den Chat verlassen.\n"+colorReset, clientName))
+			broadcastMessage(conn, fmt.Sprintf(utils.ColorRed+"%s hat den Chat verlassen.\n"+utils.ColorReset, clientName))
 
 			fmt.Println("Fehler beim Lesen der Nachricht von", clientName, ":", err)
 			break

@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"client/handler"
 )
 
 const defaultServerAddress = "localhost:8080"
@@ -14,6 +16,9 @@ const colorReset = "\033[0m"
 const colorCyan = "\033[36m" // Blaue Farbe für die Uhrzeit
 
 func main() {
+
+	handler.Hello()
+
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Printf("Serveradresse eingeben (Standard: %s): ", defaultServerAddress)

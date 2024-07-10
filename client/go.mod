@@ -1,3 +1,3 @@
-module tests/terminal/chat-room/client
+module client
 
 go 1.22.4
