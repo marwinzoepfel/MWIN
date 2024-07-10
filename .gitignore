@@ -1,0 +1,22 @@
+# Binaries for different platforms
+chat_server
+chat_client
+
+# Compiled object files
+*.o
+*.a
+
+# Editor backup files
+*~
+*.swp
+
+# Go build output
+bin/
+pkg/
+
+# Go module cache
+go.sum
+
+# IDE-specific files
+.idea/
+.vscode/
