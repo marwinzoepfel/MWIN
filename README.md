@@ -1,4 +1,7 @@
-# Simple Go Chat Room
+# MWIN
+**MWIN** (My Witty Interactive Nonsense): A simple, self-hosted, terminal-based chat room application written in Go. No installation required, just download and run!
+
+a Simple Go Chat Room
 
 This is a basic, terminal-based chat room implemented in Go. It allows multiple users to connect and chat with each other in real time.
 
