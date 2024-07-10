@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"server/client"
 	"strings"
-	"sync"
-	"time"
 )
 
+<<<<<<< HEAD
 const defaultPort = ":8080" // Choose your preferred port
 const colorRed = "\033[31m" // Angenehmes Rot
 const colorReset = "\033[0m"
@@ -77,6 +77,27 @@ func getPort() string {
 	fmt.Printf("Port eingeben (Standard: %s): [Wichtig! Ohne :] ", defaultPort)
 	portInput, _ := reader.ReadString('\n')
 	portInput = strings.TrimSpace(portInput)
+=======
+const defaultPort = ":8080"
+
+func main() {
+	port := getPortFromUser()
+	listener := startServer(port)
+	defer listener.Close()
+
+	fmt.Println("Chat-Server gestartet auf Port", port)
+
+	acceptConnections(listener)
+}
+
+func getPortFromUser() string {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf("Port eingeben (Standard: %s): ", defaultPort)
+
+	portInput, _ := reader.ReadString('\n')
+	portInput = strings.TrimSpace(portInput)
+
+>>>>>>> clean-up
 	if portInput == "" {
 		return defaultPort
 	}
@@ -86,23 +107,40 @@ func getPort() string {
 	return portInput
 }
 
+<<<<<<< HEAD
 func main() {
 	portInput := getPort()
 	listener, err := net.Listen("tcp", portInput)
+=======
+	if !strings.HasPrefix(portInput, ":") {
+		portInput = ":" + portInput
+	}
+	return portInput
+}
+
+func startServer(port string) net.Listener {
+	listener, err := net.Listen("tcp", port)
+>>>>>>> clean-up
 	if err != nil {
 		fmt.Println("Fehler beim Lauschen:", err)
-		return
+		os.Exit(1) // Beende das Programm bei einem Fehler
 	}
-	defer listener.Close()
+	return listener
+}
 
-	fmt.Println("Chat-Server gestartet auf Port", portInput)
-
+func acceptConnections(listener net.Listener) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			fmt.Println("Error accepting connection:", err)
 			continue
 		}
+<<<<<<< HEAD
 		go handleConnection(conn) // Handle each connection in a separate goroutine
+=======
+
+		client := client.NewClient(conn)
+		go client.Handle()
+>>>>>>> clean-up
 	}
 }
