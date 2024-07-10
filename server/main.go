@@ -4,20 +4,30 @@ import (
 	"bufio"
 	"fmt"
 	"net"
-	"os"
 	"server/handler"
 	"strings"
 	"sync"
 	"time"
 )
 
-const defaultPort = ":8080" // Choose your preferred port
 const colorRed = "\033[31m" // Angenehmes Rot
 const colorReset = "\033[0m"
 
 // Map to store connected clients (key: connection, value: client name)
 var clients = make(map[net.Conn]string)
 var mutex = &sync.Mutex{} // Mutex for safe concurrent access to clients map
+
+// Function to handle the connection and cleanup
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+	clientName := handler.RegisterClient(conn, mutex, clients)
+	fmt.Printf("Neuer Client verbunden: %s\n", clientName)
+	handleClientMessages(conn, clientName)
+	mutex.Lock()
+	delete(clients, conn)
+	mutex.Unlock()
+	fmt.Printf("Client disconnected: %s\n", clientName)
+}
 
 // Function to handle incoming messages from a client
 func handleClientMessages(conn net.Conn, clientName string) {
@@ -35,35 +45,8 @@ func handleClientMessages(conn net.Conn, clientName string) {
 	}
 }
 
-// Function to handle the connection and cleanup
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
-	clientName := handler.RegisterClient(conn, mutex, clients)
-	fmt.Printf("Neuer Client verbunden: %s\n", clientName)
-	handleClientMessages(conn, clientName)
-	mutex.Lock()
-	delete(clients, conn)
-	mutex.Unlock()
-	fmt.Printf("Client disconnected: %s\n", clientName)
-}
-
-// Function to get port (input or default)
-func getPort() string {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("Port eingeben (Standard: %s): [Wichtig! Ohne :] ", defaultPort)
-	portInput, _ := reader.ReadString('\n')
-	portInput = strings.TrimSpace(portInput)
-	if portInput == "" {
-		return defaultPort
-	}
-	if !strings.HasPrefix(portInput, ":") {
-		portInput = ":" + portInput
-	}
-	return portInput
-}
-
 func main() {
-	portInput := getPort()
+	portInput := handler.GetPort()
 	listener, err := net.Listen("tcp", portInput)
 	if err != nil {
 		fmt.Println("Fehler beim Lauschen:", err)
