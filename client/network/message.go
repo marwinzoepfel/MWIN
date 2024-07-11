@@ -19,8 +19,10 @@ func ReceiveMessages(conn net.Conn, onMessageReceived func(string)) {
 		if len(message) == 0 {
 			continue
 		}
-		currentTime := time.Now().Format("15:04:05")
-		message = fmt.Sprintf("[%s] Other: %s", currentTime, message)
+		//currentTime := time.Now().Format("15:04:05")
+		message = message[:len(message)-1]
+
+		message = fmt.Sprintf("\033[38;5;153m%s\033[0m", message)
 		onMessageReceived(message)
 	}
 }
@@ -29,6 +31,7 @@ func ReceiveMessages(conn net.Conn, onMessageReceived func(string)) {
 func SendMessage(conn net.Conn, message string, onMessageSent func(string)) {
 	currentTime := time.Now().Format("15:04:05")
 	formattedMessage := fmt.Sprintf("[%s] You: %s", currentTime, message)
+
 	onMessageSent(formattedMessage)
 
 	_, err := fmt.Fprintln(conn, message)
