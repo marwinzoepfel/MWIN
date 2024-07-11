@@ -2,6 +2,9 @@ package network
 
 import (
 	"bufio"
+	"client/notificatioin"
+	"strings"
+
 	"fmt"
 	"net"
 	"time"
@@ -22,8 +25,11 @@ func ReceiveMessages(conn net.Conn, onMessageReceived func(string)) {
 		//currentTime := time.Now().Format("15:04:05")
 		message = message[:len(message)-1]
 
-		message = fmt.Sprintf("\033[38;5;153m%s\033[0m", message)
+		formattedMessage := strings.ReplaceAll(message, "\033[38;5;153m%s\033", "")
+
+		notificatioin.SendMessageToOS(formattedMessage)
 		onMessageReceived(message)
+
 	}
 }
 
