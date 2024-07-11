@@ -44,16 +44,20 @@ func ReceiveMessages(conn net.Conn) {
 	}
 }
 
+// macOS: Native Benachrichtigung
+func notification_darwin_nativ(message string) {
+	script := fmt.Sprintf(`display notification "%s" with title "MWIN Chat"`, message)
+	cmd := exec.Command("osascript", "-e", script)
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println("Error sending notification:", err)
+	}
+}
+
 func sendMessageToOS(message string) {
 	switch runtime.GOOS {
 	case "darwin":
-		// macOS: Native Benachrichtigung
-		script := fmt.Sprintf(`display notification "%s" with title "MWIN Chat"`, message)
-		cmd := exec.Command("osascript", "-e", script)
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println("Error sending notification:", err)
-		}
+		notification_darwin_nativ(message)
 
 	case "linux":
 		// Linux: D-Bus oder systray
