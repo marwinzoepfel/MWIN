@@ -47,44 +47,12 @@ func ReceiveMessages(conn net.Conn) {
 func sendMessageToOS(message string) {
 	switch runtime.GOOS {
 	case "darwin":
-		// Embed the icon
-
-		var iconData []byte
-
 		// macOS: Native Benachrichtigung
-		// Write embedded icon to a temporary file
-		tmpFile, err := os.CreateTemp(os.TempDir(), "mwin_icon_*.png")
-		if err != nil {
-			fmt.Println("Error creating temporary icon file:", err)
-			return
-		}
-		defer os.Remove(tmpFile.Name()) // Remove the file when done
-
-		_, err = tmpFile.Write(iconData)
-		if err != nil {
-			fmt.Println("Error writing icon to temporary file:", err)
-			return
-		}
-		tmpFile.Close()
-
-		// Construct AppleScript command (Alternative Approach)
-		script := fmt.Sprintf(`
-			 on run argv
-				  display notification (item 1 of argv) with title "MWIN Chat" sound name "default"
-				  tell application "System Events"
-						set theIcon to POSIX file "%s"
-						set the image of (first item of (get notifications)) to theIcon
-				  end tell
-			 end run
-		`, tmpFile.Name())
-
-		// Execute AppleScript (with message as argument)
-		cmd := exec.Command("osascript", "-e", script, message)
-		output, err := cmd.CombinedOutput()
+		script := fmt.Sprintf(`display notification "%s" with title "MWIN Chat"`, message)
+		cmd := exec.Command("osascript", "-e", script)
+		err := cmd.Run()
 		if err != nil {
 			fmt.Println("Error sending notification:", err)
-			fmt.Println("AppleScript output:", string(output))
-			return
 		}
 
 	case "linux":
