@@ -35,4 +35,5 @@ require (
 	github.com/randall77/makefat v0.0.0-20210315173500-7ddd0e42c844 // indirect
 	golang.org/x/image v0.18.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0
 )

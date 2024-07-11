@@ -1,3 +1,6 @@
+# custom config files
+config.yaml
+
 # Binaries for different platforms
 chat_server
 chat_client
