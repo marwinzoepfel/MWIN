@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"client/network"
+	"client/gui"     // Passe den Importpfad entsprechend an
+	"client/network" // Passe den Importpfad entsprechend an
 )
 
 func main() {
-
 	reader := bufio.NewReader(os.Stdin)
 
 	serverAddress := network.GetServerAddress(reader)
@@ -28,6 +28,6 @@ func main() {
 		return
 	}
 
-	go network.ReceiveMessages(conn)
-	network.SendMessages(conn, reader)
+	// Start GUI
+	gui.RunChat(conn, reader)
 }

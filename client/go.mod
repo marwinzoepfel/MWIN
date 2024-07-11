@@ -27,6 +27,7 @@ require (
 
 require (
 	github.com/akavel/rsrc v0.10.2 // indirect
+	github.com/chzyer/readline v1.5.1
 	github.com/dchest/jsmin v0.0.0-20220218165748-59f39799265f // indirect
 	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/josephspurrier/goversioninfo v1.4.0 // indirect
