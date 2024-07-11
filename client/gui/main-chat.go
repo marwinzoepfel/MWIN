@@ -6,17 +6,14 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 
 	"github.com/chzyer/readline"
 
 	"client/network" // Anpassen, wenn der Pfad anders ist
-)
-
-const (
-	colorReset = "\033[0m"
-	colorCyan  = "\033[36m"
 )
 
 var (
@@ -34,6 +31,9 @@ func AddMessage(message string) {
 }
 
 func updateScreen() {
+	// Terminalgröße neu ermitteln
+	width, height = getTerminalSize()
+
 	fmt.Print("\033[H\033[2J") // Bildschirm löschen
 
 	mutex.Lock()
@@ -50,7 +50,6 @@ func updateScreen() {
 	}
 	mutex.Unlock()
 
-	// Eingabezeile am unteren Rand anzeigen
 	fmt.Printf("\r\033[%d;1H> ", height+1) // \r für Cursor-Rücklauf
 }
 
@@ -60,29 +59,23 @@ func getTerminalSize() (int, int) {
 	out, err := cmd.Output()
 	if err != nil {
 		fmt.Println("Error getting terminal size:", err)
-		return 0, 0
+		return 80, 24 // Default-Werte
 	}
 	wh := strings.Split(string(out), " ")
-	width, height := 80, 24 // Default-Werte, falls die Ermittlung fehlschlägt
+	width, height := 80, 24 // Default-Werte
 	if len(wh) == 2 {
 		fmt.Sscan(wh[1], &width)
 		fmt.Sscan(wh[0], &height)
 	}
-
-	// Bildschirm löschen und Nachrichten anzeigen
-	fmt.Print("\033[H\033[2J") // Bildschirm löschen
 	return width, height
 }
 
 func RunChat(conn net.Conn, reader *bufio.Reader) {
-	// Terminalgröße ermitteln, bevor Nachrichten gesendet oder empfangen werden
 	width, height = getTerminalSize()
-
-	// Bildschirm aktualisieren, um die korrekte Größe zu verwenden
 	updateScreen()
 
 	rl, err := readline.NewEx(&readline.Config{
-		Prompt:              "> ", // Prompt wird jetzt immer angezeigt
+		Prompt:              "> ",
 		ForceUseInteractive: true,
 	})
 	if err != nil {
@@ -90,6 +83,16 @@ func RunChat(conn net.Conn, reader *bufio.Reader) {
 		return
 	}
 	defer rl.Close()
+
+	// Signal-Handler für SIGWINCH (Fenstergrößenänderung)
+	sigwinchCh := make(chan os.Signal, 1)
+	signal.Notify(sigwinchCh, syscall.SIGWINCH)
+
+	go func() {
+		for range sigwinchCh {
+			updateScreen() // Bildschirm bei Größenänderung aktualisieren
+		}
+	}()
 
 	// Goroutine zum Empfangen von Nachrichten
 	go network.ReceiveMessages(conn, AddMessage)
@@ -102,7 +105,6 @@ func RunChat(conn net.Conn, reader *bufio.Reader) {
 		}
 
 		network.SendMessage(conn, line, AddMessage)
-		// Bildschirm nach dem Senden aktualisieren, aber Prompt neu setzen
 		rl.SetPrompt("> ")
 		updateScreen()
 	}

@@ -26,10 +26,10 @@ func ReceiveMessages(conn net.Conn, onMessageReceived func(string)) {
 		message = message[:len(message)-1]
 
 		formattedMessage := strings.ReplaceAll(message, "\033[38;5;153m%s\033", "")
+		message = fmt.Sprintf("\033[38;5;153m%s\033[0m", message)
 
 		notificatioin.SendMessageToOS(formattedMessage)
 		onMessageReceived(message)
-
 	}
 }
 
