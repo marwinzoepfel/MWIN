@@ -30,16 +30,26 @@ func main() {
 	}
 
 	// 2. Startmodus abfragen
-	fmt.Print("Startmodus (start, start manual): ")
-	startMode, _ := reader.ReadString('\n')
-	startMode = startMode[:len(startMode)-1] // Zeilenumbruch entfernen
+	fmt.Println("Öffne die config.yaml und trage hier deine Daten ein, um mit start direkt auf den angegebenen Server zu connecten.")
+	selectedItem := gui.StartMenu()
+
+	var startMode string
+
+	// Handle the selected item
+	if selectedItem != "" {
+		fmt.Println("You selected:", selectedItem)
+		startMode = selectedItem
+		// ... perform actions based on the selected item ...
+	} else {
+		fmt.Println("No item selected.")
+	}
 
 	var serverAddress, clientName string
-	if startMode == "start" {
+	if startMode == "Auto Start" {
 		// 3a. Konfigurationswerte verwenden
 		serverAddress = config.ServerAddress
 		clientName = config.ClientName
-	} else if startMode == "start manual" {
+	} else if startMode == "Manual Start" {
 		// 3b. Manuelle Eingabe
 		serverAddress = network.GetServerAddress(reader)
 		clientName = network.GetClientName(reader)
