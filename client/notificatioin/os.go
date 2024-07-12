@@ -3,6 +3,7 @@ package notificatioin
 import (
 	"fmt"
 	"os/exec"
+	"regexp"
 	"runtime"
 )
 
@@ -18,7 +19,13 @@ func SendMessageToOS(message string) {
 
 // macOS: Native Benachrichtigung
 func Notification_darwin_nativ(message string) {
-	script := fmt.Sprintf(`display notification "%s" with title "MWIN Chat"`, message)
+	// Regulärer Ausdruck zum Erkennen von ANSI-Farbcodes
+	re := regexp.MustCompile(`\x1B\[[0-?]*[ -/]*[@-~]`)
+
+	// Entferne Farbcodes aus der Nachricht
+	cleanMessage := re.ReplaceAllString(message, "")
+
+	script := fmt.Sprintf(`display notification "%s" with title "MWIN Chat"`, cleanMessage)
 	cmd := exec.Command("osascript", "-e", script)
 	err := cmd.Run()
 	if err != nil {
