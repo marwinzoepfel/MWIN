@@ -1,3 +1,6 @@
+# make file
+make.sh
+
 # custom config files
 config.yaml
 
@@ -15,6 +18,7 @@ chat_client
 
 # Go build output
 pkg/
+bin/
 
 # Go module cache
 go.sum
