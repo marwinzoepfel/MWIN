@@ -19,10 +19,21 @@ type Config struct {
 }
 
 func main() {
+
 	reader := bufio.NewReader(os.Stdin)
 
 	// 1. Konfiguration laden oder erstellen
-	configFilePath := "config.yaml" // Dateiname im aktuellen Verzeichnis
+	// Aktuelles Arbeitsverzeichnis ermitteln
+	exePath, err := os.Executable()
+	if err != nil {
+		fmt.Println("Error getting executable path:", err)
+		return
+	}
+	exeDir := filepath.Dir(exePath)
+
+	// Pfad zur Konfigurationsdatei im selben Verzeichnis wie die Binärdatei
+	configFilePath := filepath.Join(exeDir, "config.yaml")
+
 	config, err := loadConfig(configFilePath)
 	if err != nil {
 		fmt.Println("Error loading config:", err)

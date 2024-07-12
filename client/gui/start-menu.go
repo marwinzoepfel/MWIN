@@ -94,9 +94,24 @@ func (m model) View() string {
 	// Calculate horizontal offset for centering (same as before)
 	offsetX := 0
 
-	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center,
+	// Footer Style and Text
+	footerStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("241")). // Light text for the hint
+		MarginTop(2)
+
+	footerText := "Wenn du das Programm zum ersten Mal laufen lässt, beende es bitte. Öffne die config.txt im gleichen Ordner wie die bin-Datei, passe deine Daten an und starte das Programm erneut."
+
+	footer := footerStyle.Render(wordwrap.String(footerText, m.width))
+
+	// Combine buttons and footer
+	content := lipgloss.JoinVertical(lipgloss.Center,
 		lipgloss.NewStyle().PaddingLeft(offsetX).Render( // Manual padding
 			lipgloss.JoinHorizontal(lipgloss.Left, buttons...)),
+		footer,
+	)
+
+	return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center,
+		content,
 		lipgloss.WithWhitespaceForeground(lipgloss.Color("0")),
 		lipgloss.WithWhitespaceChars(" "))
 }
