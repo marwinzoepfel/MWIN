@@ -47,6 +47,7 @@ require (
 )
 
 require (
+	github.com/adrg/xdg v0.5.0
 	github.com/chzyer/readline v1.5.1
 	github.com/godbus/dbus v4.1.0+incompatible
 	golang.org/x/sys v0.22.0 // indirect
