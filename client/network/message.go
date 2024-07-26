@@ -2,7 +2,7 @@ package network
 
 import (
 	"bufio"
-	"client/notificatioin"
+	"client/notification"
 	"strings"
 
 	"fmt"
@@ -28,7 +28,7 @@ func ReceiveMessages(conn net.Conn, onMessageReceived func(string)) {
 		formattedMessage := strings.ReplaceAll(message, "\033[38;5;153m%s\033", "")
 		message = fmt.Sprintf("\033[38;5;153m%s\033[0m", message)
 
-		notificatioin.SendMessageToOS(formattedMessage)
+		notification.SendMessageToOS(formattedMessage)
 		onMessageReceived(message)
 	}
 }
