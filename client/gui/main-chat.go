@@ -13,15 +13,17 @@ import (
 
 	"github.com/chzyer/readline"
 
-	"client/network" // Anpassen, wenn der Pfad anders ist
+	"client/network" // Adjust if the path is different
 )
 
 var (
 	messages []string
 	mutex    sync.Mutex
 	width    int
-	height   int // Verfügbarer Platz für Nachrichten (ohne Eingabezeile)
+    height   int // Available space for messages (excluding input line)
 )
+
+// AddMessage adds a message to the message list and updates the screen
 
 func AddMessage(message string) {
 	mutex.Lock()
@@ -30,27 +32,28 @@ func AddMessage(message string) {
 	updateScreen()
 }
 
+// updateScreen clears the screen and displays the most recent messages
 func updateScreen() {
-	// Terminalgröße neu ermitteln
+    	// Get new terminal size
 	width, height = getTerminalSize()
 
 	fmt.Print("\033[H\033[2J") // Bildschirm löschen
 
 	mutex.Lock()
-	// Anzahl der anzuzeigenden Nachrichten berechnen
+	// Calculate number of messages to display
 	numMessagesToShow := height
 	if len(messages) < height {
 		numMessagesToShow = len(messages)
 	}
 	startIdx := len(messages) - numMessagesToShow
 
-	// Nur die relevanten Nachrichten anzeigen
+	// Display only the relevant messages
 	for i := startIdx; i < len(messages); i++ {
 		fmt.Println(messages[i])
 	}
 	mutex.Unlock()
 
-	fmt.Printf("\r\033[%d;1H> ", height+1) // \r für Cursor-Rücklauf
+	fmt.Printf("\r\033[%d;1H> ", height+1) // \r for cursor return
 }
 
 func getTerminalSize() (int, int) {
@@ -59,10 +62,10 @@ func getTerminalSize() (int, int) {
 	out, err := cmd.Output()
 	if err != nil {
 		fmt.Println("Error getting terminal size:", err)
-		return 80, 24 // Default-Werte
+		return 80, 24 // Default values
 	}
 	wh := strings.Split(string(out), " ")
-	width, height := 80, 24 // Default-Werte
+	width, height := 80, 24 // Default values
 	if len(wh) == 2 {
 		fmt.Sscan(wh[1], &width)
 		fmt.Sscan(wh[0], &height)
@@ -70,6 +73,7 @@ func getTerminalSize() (int, int) {
 	return width, height
 }
 
+// RunChat initiates the chat interface, handling message sending/receiving and screen updates
 func RunChat(conn net.Conn, reader *bufio.Reader) {
 	width, height = getTerminalSize()
 	updateScreen()
@@ -90,14 +94,14 @@ func RunChat(conn net.Conn, reader *bufio.Reader) {
 
 	go func() {
 		for range sigwinchCh {
-			updateScreen() // Bildschirm bei Größenänderung aktualisieren
+			updateScreen() // Update screen on resize
 		}
 	}()
 
-	// Goroutine zum Empfangen von Nachrichten
+    	// Goroutine to receive messages
 	go network.ReceiveMessages(conn, AddMessage)
 
-	// Schleife zum Senden von Nachrichten und Aktualisieren der Anzeige
+	// Loop to send messages and update the display
 	for {
 		line, err := rl.Readline()
 		if err != nil {
