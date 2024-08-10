@@ -99,7 +99,7 @@ func (m model) View() string {
 		Foreground(lipgloss.Color("241")). // Light text for the hint
 		MarginTop(2)
 
-	footerText := "Wenn du das Programm zum ersten Mal laufen lässt, beende es bitte. Öffne die config.txt im gleichen Ordner wie die bin-Datei, passe deine Daten an und starte das Programm erneut."
+	footerText := "If you are running the program for the first time, please close it. Open the config.txt in the same folder as the bin file, adjust your data and restart the program."
 
 	footer := footerStyle.Render(wordwrap.String(footerText, m.width))
 
