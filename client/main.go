@@ -1,136 +1,136 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"path/filepath"
+    "bufio"
+    "fmt"
+    "os"
+    "path/filepath"
 
-	"client/gui"
-	"client/network"
+    "client/gui"
+    "client/network"
 
-	"gopkg.in/yaml.v2" // Für YAML-Konfiguration (du kannst auch JSON oder andere Formate verwenden)
+    "gopkg.in/yaml.v2" // For YAML configuration (you can use JSON or other formats as well)
 )
 
-// Config struct für deine Konfiguration
+// Config struct for your configuration
 type Config struct {
-	ServerAddress string `yaml:"server_address"`
-	ClientName    string `yaml:"client_name"`
+    ServerAddress string `yaml:"server_address"`
+    ClientName    string `yaml:"client_name"`
 }
 
 func main() {
 
-	reader := bufio.NewReader(os.Stdin)
+    reader := bufio.NewReader(os.Stdin)
 
-	// 1. Konfiguration laden oder erstellen
-	// Aktuelles Arbeitsverzeichnis ermitteln
-	exePath, err := os.Executable()
-	if err != nil {
-		fmt.Println("Error getting executable path:", err)
-		return
-	}
-	exeDir := filepath.Dir(exePath)
+    // 1. Load or create configuration
+    // Get current working directory
+    exePath, err := os.Executable()
+    if err != nil {
+        fmt.Println("Error getting executable path:", err)
+        return
+    }
+    exeDir := filepath.Dir(exePath)
 
-	// Pfad zur Konfigurationsdatei im selben Verzeichnis wie die Binärdatei
-	configFilePath := filepath.Join(exeDir, "config.yaml")
+    // Path to the configuration file in the same directory as the binary
+    configFilePath := filepath.Join(exeDir, "config.yaml")
 
-	config, err := loadConfig(configFilePath)
-	if err != nil {
-		fmt.Println("Error loading config:", err)
-		return
-	}
+    config, err := loadConfig(configFilePath)
+    if err != nil {
+        fmt.Println("Error loading config:", err)
+        return
+    }
 
-	// 2. Startmodus abfragen
-	fmt.Println("Öffne die config.yaml und trage hier deine Daten ein, um mit start direkt auf den angegebenen Server zu connecten.")
-	selectedItem := gui.StartMenu()
+    // 2. Query start mode
+    fmt.Println("Open config.yaml and enter your data here to connect directly to the specified server with 'start'.")
+    selectedItem := gui.StartMenu()
 
-	var startMode string
+    var startMode string
 
-	// Handle the selected item
-	if selectedItem != "" {
-		fmt.Println("You selected:", selectedItem)
-		startMode = selectedItem
-		// ... perform actions based on the selected item ...
-	} else {
-		fmt.Println("No item selected.")
-	}
+    // Handle the selected item
+    if selectedItem != "" {
+        fmt.Println("You selected:", selectedItem)
+        startMode = selectedItem
+        // ... perform actions based on the selected item ...
+    } else {
+        fmt.Println("No item selected.")
+    }
 
-	var serverAddress, clientName string
-	if startMode == "Auto Start" {
-		// 3a. Konfigurationswerte verwenden
-		serverAddress = config.ServerAddress
-		clientName = config.ClientName
-	} else if startMode == "Manual Start" {
-		// 3b. Manuelle Eingabe
-		serverAddress = network.GetServerAddress(reader)
-		clientName = network.GetClientName(reader)
-	} else {
-		fmt.Println("Ungültiger Startmodus.")
-		return
-	}
+    var serverAddress, clientName string
+    if startMode == "Auto Start" {
+        // 3a. Use configuration values
+        serverAddress = config.ServerAddress
+        clientName = config.ClientName
+    } else if startMode == "Manual Start" {
+        // 3b. Manual input
+        serverAddress = network.GetServerAddress(reader)
+        clientName = network.GetClientName(reader)
+    } else {
+        fmt.Println("Invalid start mode.")
+        return
+    }
 
-	conn, err := network.ConnectToServer(serverAddress)
-	if err != nil {
-		fmt.Println("Error connecting to server:", err)
-		return
-	}
-	defer conn.Close()
+    conn, err := network.ConnectToServer(serverAddress)
+    if err != nil {
+        fmt.Println("Error connecting to server:", err)
+        return
+    }
+    defer conn.Close()
 
-	fmt.Println("Successfully joined.")
-	if err := network.SendInitialName(conn, clientName); err != nil {
-		fmt.Println("Error sending name:", err)
-		return
-	}
+    fmt.Println("Successfully joined.")
+    if err := network.SendInitialName(conn, clientName); err != nil {
+        fmt.Println("Error sending name:", err)
+        return
+    }
 
-	// Start GUI
-	gui.RunChat(conn, reader)
+    // Start GUI
+    gui.RunChat(conn, reader)
 }
 
-// Funktion zum Laden der Konfiguration
+// Function to load the configuration
 func loadConfig(filePath string) (*Config, error) {
-	config := &Config{}
+    config := &Config{}
 
-	// Konfigurationsdatei öffnen
-	file, err := os.Open(filePath)
-	if err != nil && !os.IsNotExist(err) { // Fehler, aber nicht "Datei nicht gefunden"
-		return nil, err
-	}
-	defer file.Close()
+    // Open configuration file
+    file, err := os.Open(filePath)
+    if err != nil && !os.IsNotExist(err) { // Error, but not "file not found"
+        return nil, err
+    }
+    defer file.Close()
 
-	// Wenn Datei vorhanden, YAML einlesen
-	if file != nil {
-		decoder := yaml.NewDecoder(file)
-		if err := decoder.Decode(config); err != nil {
-			return nil, err
-		}
-	} else {
-		// Wenn Datei nicht vorhanden, Standardwerte setzen und speichern
-		config.ServerAddress = "localhost:8080" // Beispiel-Standardwert
-		config.ClientName = "Neuer Benutzer"    // Beispiel-Standardwert
-		if err := saveConfig(filePath, config); err != nil {
-			return nil, err
-		}
-	}
+    // If file exists, read YAML
+    if file != nil {
+        decoder := yaml.NewDecoder(file)
+        if err := decoder.Decode(config); err != nil {
+            return nil, err
+        }
+    } else {
+        // If file doesn't exist, set default values and save
+        config.ServerAddress = "localhost:8080" // Example default value
+        config.ClientName = "New User"         // Example default value
+        if err := saveConfig(filePath, config); err != nil {
+            return nil, err
+        }
+    }
 
-	return config, nil
+    return config, nil
 }
 
-// Funktion zum Speichern der Konfiguration
+// Function to save the configuration
 func saveConfig(filePath string, config *Config) error {
-	// Konfigurationsverzeichnis erstellen, falls nicht vorhanden
-	configDir := filepath.Dir(filePath)
-	if err := os.MkdirAll(configDir, 0755); err != nil {
-		return err
-	}
+    // Create configuration directory if it doesn't exist
+    configDir := filepath.Dir(filePath)
+    if err := os.MkdirAll(configDir, 0755); err != nil {
+        return err
+    }
 
-	// Konfigurationsdatei öffnen (oder erstellen, falls nicht vorhanden)
-	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+    // Open configuration file (or create if it doesn't exist)
+    file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+    if err != nil {
+        return err
+    }
+    defer file.Close()
 
-	// YAML schreiben
-	encoder := yaml.NewEncoder(file)
-	return encoder.Encode(config)
+    // Write YAML
+    encoder := yaml.NewEncoder(file)
+    return encoder.Encode(config)
 }
